@@ -1,11 +1,13 @@
 # BE HAPPY/backend/dependencies.py
+
 from typing import Generator
-from .database import SessionLocal
+# This import path remains correct
+from .database import SessionLocal 
 
 def get_db() -> Generator:
     """
     Dependency that yields a new database session for each request.
-    The 'finally' block ensures the session is closed cleanly, even if an error occurs.
+    This logic works for any SQLAlchemy setup (PostgreSQL, SQLite, etc.).
     """
     db = SessionLocal()
     try:
