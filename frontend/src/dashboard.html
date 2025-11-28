@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeShift Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --primary-blue: #64a6ff; 
+            --button-blue: #5ba1fc;
+            --button-shadow-blue: #2f74c7;
+            --accent-green: #00cd78;
+            --alert-red: #ff6b6b;
+            --warning-yellow: #feca57;
+            --text-dark: #2d3436;
+            --text-grey: #636e72;
+            --white: #ffffff;
+            --border-color: #f0f0f0;
+            --shadow-grey: #cacaca; 
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #fcfcfc; 
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            padding: 40px 30px;
+            background-color: var(--white);
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            width: 160px;
+            margin-bottom: 60px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 12px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--text-grey);
+            font-weight: 700;
+            font-size: 1.05rem;
+            padding: 12px 15px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #f4f9ff;
+            color: var(--button-blue);
+        }
+
+        .nav-link.active {
+            color: var(--accent-green);
+            background-color: #e6fffa;
+        }
+        
+        .nav-link.active i {
+            color: var(--accent-green);
+        }
+
+        .nav-link i {
+            font-size: 1.3rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* User Profile */
+        .user-profile-mini {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            margin-bottom: 25px;
+        }
+        
+        .user-avatar-circle {
+            width: 40px;
+            height: 40px;
+            background-color: var(--text-dark);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info h4 {
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+        .user-info p {
+            font-size: 0.8rem;
+            color: var(--text-grey);
+            font-weight: 600;
+        }
+
+        .logout-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--alert-red);
+            text-decoration: none;
+            font-weight: 800;
+            margin-left: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px 60px;
+            overflow-y: auto; /* This allows scrolling */
+            
+            /* FIXED: Hide scrollbar styles moved here */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* FIXED: Hide scrollbar for Chrome/Safari targeting the main-content */
+        .main-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Header */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 50px;
+        }
+
+        .header-text {
+            position: relative;
+            /* FIXED: Added padding to make room for the fox inside the container */
+            padding-left: 100px; 
+        }
+
+        /* FIXED: Adjusted Mascot Position to be inside the container */
+        .mascot-head {
+            position: absolute;
+            left: 0; /* Align to the start of the padding */
+            top: -15px;
+            width: 90px;
+            transform: rotate(-5deg); 
+            /* Removed clip-path to ensure whole head is visible */
+        }
+
+        .header-text h1 {
+            font-size: 2.4rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            line-height: 1.1;
+        }
+
+        .header-text p {
+            color: var(--text-grey);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 8px;
+        }
+
+        .submit-report-btn {
+            background-color: var(--button-blue);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 5px 6px 0px 0px var(--button-shadow-blue);
+            transition: all 0.1s ease;
+        }
+
+        .submit-report-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 8px 0px 0px var(--button-shadow-blue);
+        }
+
+        .submit-report-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 3px 0px 0px var(--button-shadow-blue);
+        }
+
+        /* --- STAT CARDS --- */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 5px 6px 0px 0px var(--shadow-grey);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: 2px solid var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--text-dark);
+            flex-shrink: 0;
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            font-size: 0.95rem;
+            color: var(--text-grey);
+            font-weight: 700;
+        }
+
+        /* --- DASHBOARD GRID --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 5px 6px 0px 0px var(--shadow-grey);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .card-header h3 {
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        /* Wellness & Task Donut Charts */
+        .wellness-content {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .donut-chart {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--accent-green) 0% 75%, 
+                #f0f0f0 75% 100%
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .donut-chart::after {
+            content: "";
+            width: 75px;
+            height: 75px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .wellness-details h4 {
+            color: var(--accent-green);
+            font-weight: 900;
+            font-size: 1.5rem;
+            margin-bottom: 2px;
+        }
+        .wellness-details p {
+            font-size: 0.9rem;
+            color: var(--text-grey);
+            font-weight: 600;
+        }
+
+        /* Metrics Bars */
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        /* Style for the icons added in HTML */
+        .metric-row i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+            color: var(--button-blue);
+        }
+        
+        .metric-bar-bg {
+            width: 120px;
+            height: 8px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background-color: var(--button-blue);
+        }
+
+        /* Performance Tracker */
+        .status-badge {
+            background-color: #e6fffa;
+            color: #00cd78;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 1px dashed #00cd78;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: var(--button-blue);
+            border-radius: 10px;
+            width: 81%; 
+        }
+
+        .trend-up {
+            color: var(--accent-green);
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Reports List */
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #f9f9f9;
+        }
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        .report-info h5 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .report-info span {
+            font-size: 0.8rem;
+            color: var(--text-grey);
+            font-weight: 600;
+        }
+        .tag {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+        .tag.review { background-color: #fff4e5; color: #ff9f43; }
+        .tag.resolved { background-color: #e6fffa; color: #00cd78; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid #eee; }
+            .main-content { padding: 30px 20px; }
+            .mascot-head { display: none; } 
+        }
+
+        
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <img src="ui/logo.png" alt="SafeShift" class="logo">
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-file-lines"></i>
+                    Reports
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-regular fa-user"></i>
+                    Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-gear"></i>
+                    Settings
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-profile-mini">
+            <div class="user-avatar-circle">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="user-info">
+                <h4>Employee</h4>
+                <p>Engineering</p>
+            </div>
+        </div>
+        
+        <a href="#" class="logout-link">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Log out
+        </a>
+    </aside>
+
+    <main class="main-content">
+        
+        <header class="header-section">
+            <div class="header-text">
+                <img src="ui/fox.png" class="mascot-head" alt="Mascot">
+                <h1>Good Morning, employee!</h1>
+                <p>Here's what's happening with your work today.</p>
+            </div>
+            
+            <button class="submit-report-btn">
+                <i class="fa-solid fa-plus"></i> Submit Report
+            </button>
+        </header>
+
+        <section class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-regular fa-calendar"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>12</h3>
+                    <p>Days this month</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-regular fa-file-lines"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>4</h3>
+                    <p>Reports submitted</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-regular fa-envelope"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>2</h3>
+                    <p>New messages</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Wellness Score</h3>
+                    <i class="fa-regular fa-heart" style="color: var(--accent-green); font-size: 1.2rem;"></i>
+                </div>
+                <div class="wellness-content">
+                    <div class="donut-chart"></div>
+                    <div class="wellness-details">
+                        <h4>Good</h4>
+                        <p>Keep it up!</p>
+                    </div>
+                </div>
+                
+                <div class="wellness-metrics">
+                    <div class="metric-row">
+                        <span><i class="fa-solid fa-scale-balanced"></i> Work-Life Balance</span>
+                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 80%; background-color: var(--button-blue);"></div></div>
+                    </div>
+                    <div class="metric-row">
+                        <span><i class="fa-solid fa-person-running"></i> Activity Level</span>
+                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 60%; background-color: #ddd;"></div></div>
+                    </div>
+                    <div class="metric-row">
+                        <span><i class="fa-solid fa-bolt"></i> Stress Level</span>
+                        <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 30%; background-color: #ddd;"></div></div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Performance Tracker</h3>
+                    <i class="fa-regular fa-clock" style="color: var(--button-blue); font-size: 1.2rem;"></i>
+                </div>
+                <div class="status-badge">
+                    <i class="fa-solid fa-bolt"></i> Current Status: Working
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Today's Progress</span>
+                        <span style="color: var(--accent-green);">6.5h / 8h</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-label" style="margin-top:5px; font-weight:700; color:#aaa; font-size: 0.8rem;">
+                        <span>On Track</span>
+                        <span>81%</span>
+                    </div>
+                </div>
+                <div style="border-top: 2px solid #f9f9f9; padding-top: 15px; margin-top: 20px;">
+                    <div style="display:flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight:800; font-size:0.9rem;">This Week</span>
+                        <div class="trend-up">
+                            <i class="fa-solid fa-arrow-trend-up"></i> On Track
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Task Completion</h3>
+                    <a href="#" style="text-decoration:none; color:var(--text-dark); font-weight:800; font-size:0.9rem;">+ Add</a>
+                </div>
+                <div class="wellness-content">
+                    <div class="donut-chart" style="width: 70px; height: 70px; background: conic-gradient(var(--accent-green) 0% 40%, #eee 40% 100%);">
+                         <style>.donut-chart[style*="70px"]::after { width: 50px; height: 50px; }</style>
+                    </div>
+                    <div class="wellness-details">
+                        <h4 style="color:var(--text-dark); font-size: 1.3rem;">2/5</h4>
+                        <p>Tasks Done</p>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:0.85rem; font-weight:700;">
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-regular fa-circle-check" style="color:var(--accent-green); font-size:1rem;"></i> Quarterly report
+                        </span>
+                        <i class="fa-regular fa-flag" style="color:var(--alert-red);"></i>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:0.85rem; font-weight:700;">
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-regular fa-circle-check" style="color:var(--accent-green); font-size:1rem;"></i> Team proposal
+                        </span>
+                        <i class="fa-regular fa-flag" style="color:var(--warning-yellow);"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>My Recent Reports</h3>
+                    <a href="#" style="text-decoration:none; color:var(--text-grey); font-weight:700; font-size:0.85rem;">View all</a>
+                </div>
+                <ul class="report-list">
+                    <li class="report-item">
+                        <div class="report-info">
+                            <h5>Safety Concern</h5>
+                            <span>#Safe-001 • 2 days ago</span>
+                        </div>
+                        <span class="tag review">Under Review</span>
+                    </li>
+                    <li class="report-item">
+                        <div class="report-info">
+                            <h5>Policy Violation</h5>
+                            <span>#Safe-002 • 1 day ago</span>
+                        </div>
+                        <span class="tag resolved">Resolved</span>
+                    </li>
+                    <li class="report-item">
+                        <div class="report-info">
+                            <h5>Equipment Check</h5>
+                            <span>#Safe-003 • 5 hrs ago</span>
+                        </div>
+                        <span class="tag resolved">Resolved</span>
+                    </li>
+                </ul>
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
