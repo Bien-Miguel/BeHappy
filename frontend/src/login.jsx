@@ -1,27 +1,53 @@
+// frontend/src/login.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 
-export default function App() {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Employee'); // Default active role
+  const [role, setRole] = useState('Employee');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    console.log('Logging in as:', role, 'Email:', email);
-    // Add authentication logic here
-  };
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+
+  try {
+    const result = await login(email, password);
+    
+    if (result.success) {
+      if (result.user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      setError(result.error);
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    setError(error.message || 'An unexpected error occurred. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+  
 
   return (
     <>
-      {/* --- External Resources (Fonts & Icons) --- */}
+      {/* External Resources */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-      {/* --- Styles --- */}
       <style>{`
-        /* --- GLOBAL RESET & VARIABLES --- */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -38,6 +64,7 @@ export default function App() {
             --input-bg: #d9d9d9; 
             --white: #ffffff;
             --shadow-grey: #cacaca;
+            --alert-red: #ff6b6b;
         }
 
         body {
@@ -48,19 +75,17 @@ export default function App() {
             margin: 0;
         }
 
-        /* --- LAYOUT CONTAINERS --- */
         .app-container {
             display: flex;
             width: 100%;
             height: 100vh;
         }
 
-        /* --- LEFT SECTION (BLUE WITH CLOUDS) --- */
         .left-panel {
             flex: 1;
             background-color: var(--primary-blue);
             background-image: url('ui/clouds.png'); 
-            background-size: cover; /* Changed to cover to ensure it fills better */
+            background-size: cover;
             background-position: bottom; 
             background-repeat: no-repeat;
             padding: 40px 60px 0 60px;
@@ -72,7 +97,7 @@ export default function App() {
         }
 
         .logo {
-            width: 250px; /* Adjusted based on previous context, user said 400px might be too big for some screens, keeping strictly to code provided though? Code said 400px so I will use 400px */
+            width: 250px;
             max-width: 100%;
             height: auto;
             margin-bottom: 40px;
@@ -108,11 +133,9 @@ export default function App() {
             align-self: center;
             z-index: 1;
             display: block;
-            /* Fix for image scaling if needed */
             object-fit: contain;
         }
 
-        /* --- RIGHT SECTION (FORM) --- */
         .right-panel {
             flex: 1;
             background-color: var(--white);
@@ -142,7 +165,6 @@ export default function App() {
             font-weight: 600;
         }
 
-        /* --- ROLE BUTTONS --- */
         .role-toggle {
             display: flex;
             justify-content: space-between;
@@ -169,7 +191,6 @@ export default function App() {
             transition: all 0.1s ease; 
         }
 
-        /* Active State Style (Optional addition to show selection) */
         .role-btn.active {
             border-color: var(--button-blue);
             color: var(--button-blue);
@@ -192,7 +213,6 @@ export default function App() {
             border-color: #dcdcdc;
         }
         
-        /* --- INPUTS --- */
         .form-group {
             margin-bottom: 20px;
         }
@@ -216,7 +236,6 @@ export default function App() {
             font-weight: 700;
         }
 
-        /* --- FOOTER --- */
         .form-footer {
             display: flex;
             justify-content: space-between;
@@ -256,7 +275,6 @@ export default function App() {
             font-weight: 700;
         }
 
-        /* --- SIGN IN BUTTON --- */
         .submit-btn {
             width: 100%;
             padding: 18px;
@@ -270,6 +288,7 @@ export default function App() {
             cursor: pointer;
             box-shadow: 5px 6px 0px 0px var(--button-shadow-blue);
             transition: all 0.1s ease;
+            position: relative;
         }
 
         .submit-btn:hover {
@@ -281,7 +300,23 @@ export default function App() {
             box-shadow: 2px 3px 0px 0px var(--button-shadow-blue);
         }
 
-        /* --- RESPONSIVE --- */
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background-color: #fee;
+            border: 1px solid var(--alert-red);
+            color: var(--alert-red);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
         @media (max-width: 900px) { 
             .app-container {
                 flex-direction: column;
@@ -302,82 +337,92 @@ export default function App() {
       `}</style>
 
       <div className="app-container">
-        
-        {/* Left Panel */}
         <div className="left-panel">
-            
-            <img src="ui/logo.png" alt="SafeShift Logo" className="logo" />
+          <div style={{width: '250px', height: '60px', background: '#e0e0e0', borderRadius: '8px', marginBottom: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '800'}}>LOGO</div>
 
-            <div className="hero-text">
-                <h1>Create a safer,<br/>healthier workplace</h1>
-                <p>Empower your team to voice concerns anonymously while gaining insights to build a culture of trust and transparency.</p>
-            </div>
+          <div className="hero-text">
+            <h1>Create a safer,<br/>healthier workplace</h1>
+            <p>Empower your team to voice concerns anonymously while gaining insights to build a culture of trust and transparency.</p>
+          </div>
 
-            <img src="ui/characters.png" alt="Characters and Mascot" className="illustration" />
-
+          <div style={{width: '100%', maxWidth: '650px', height: '300px', background: '#c0c0c0', borderRadius: '16px', marginTop: 'auto', alignSelf: 'center'}}></div>
         </div>
 
-        {/* Right Panel */}
         <div className="right-panel">
-            <div className="login-wrapper">
-                
-                <div className="login-header">
-                    <h2>Welcome Back</h2>
-                    <p>Sign in to your account to continue</p>
-                </div>
-
-                <div className="role-toggle">
-                    <button 
-                        className={`role-btn ${role === 'Employee' ? 'active' : ''}`}
-                        onClick={() => setRole('Employee')}
-                        type="button"
-                    >
-                        <i className="fa-regular fa-user"></i> Employee
-                    </button>
-                    <button 
-                        className={`role-btn ${role === 'Admin' ? 'active' : ''}`}
-                        onClick={() => setRole('Admin')}
-                        type="button"
-                    >
-                        <i className="fa-regular fa-user"></i> Admin
-                    </button>
-                </div>
-
-                <form onSubmit={handleLogin}>
-                    <div className="form-group">
-                        <input 
-                            type="email" 
-                            placeholder="Email Address" 
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <input 
-                            type="password" 
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-footer">
-                        <label className="remember-me">
-                            <input type="checkbox" />
-                            Remember me
-                        </label>
-                        <a href="#" className="forgot-pass">Forgot Password</a>
-                    </div>
-
-                    <button type="submit" className="submit-btn">Sign in</button>
-                </form>
-
+          <div className="login-wrapper">
+            <div className="login-header">
+              <h2>Welcome Back</h2>
+              <p>Sign in to your account to continue</p>
             </div>
-        </div>
 
+            {error && (
+                <div style={{
+                    backgroundColor: '#fee',
+                    border: '1px solid #ff6b6b',
+                    color: '#ff6b6b',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '20px',
+                    fontWeight: '700',
+                    fontSize: '0.9rem',
+                    textAlign: 'left'
+                }}>
+                    <i className="fa-solid fa-circle-exclamation"></i> {error}
+                </div>
+            )}
+
+            <div className="role-toggle">
+              <button 
+                className={`role-btn ${role === 'Employee' ? 'active' : ''}`}
+                onClick={() => setRole('Employee')}
+                type="button"
+              >
+                <i className="fa-regular fa-user"></i> Employee
+              </button>
+              <button 
+                className={`role-btn ${role === 'Admin' ? 'active' : ''}`}
+                onClick={() => setRole('Admin')}
+                type="button"
+              >
+                <i className="fa-regular fa-user"></i> Admin
+              </button>
+            </div>
+
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <input 
+                  type="email" 
+                  placeholder="Email Address" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <input 
+                  type="password" 
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-footer">
+                <label className="remember-me">
+                  <input type="checkbox" />
+                  Remember me
+                </label>
+                <a href="#" className="forgot-pass">Forgot Password</a>
+              </div>
+
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign in'}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </>
   );

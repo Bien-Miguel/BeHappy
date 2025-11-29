@@ -1,17 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import { dashboardAPI, reportsAPI, departmentsAPI } from './services/api';
 
 export default function SafeShiftDashboard() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+    
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [departments, setDepartments] = useState([]);
+    
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Select type',
-    severity: 'Low',
-    date: '',
-    location: '',
+    report_type: 'safety_concern', // Updated from 'category'
+    severity: 'low', // Updated from 'Low'
+    incident_date: '', // Updated from 'date'
     description: '',
-    anonymous: false
+    department_id: '', // New field
+    is_anonymous: false, // Updated from 'anonymous'
+    witness_information: '', // New field
+    attachments: [] // New field, updated from 'location' (no longer needed)
   });
+
+  useEffect(() => {
+    fetchDashboardData();
+    fetchDepartments();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await dashboardAPI.getMetrics();
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await departmentsAPI.getAll();
+      setDepartments(response.departments || []);
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const handleSubmitReport = async () => {
+    setSubmitLoading(true);
+    try {
+      const reportData = {
+        title: formData.title,
+        report_type: formData.report_type,
+        severity: formData.severity,
+        incident_date: formData.incident_date,
+        description: formData.description,
+        department_id: formData.department_id || user.department_id,
+        is_anonymous: formData.is_anonymous,
+        witness_information: formData.witness_information || null,
+        attachments: formData.attachments.length > 0 ? formData.attachments : null
+      };
+      await reportsAPI.create(reportData);
+      setCurrentStep(3);
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -23,7 +93,9 @@ export default function SafeShiftDashboard() {
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep === 2) {
+      handleSubmitReport();
+    } else if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -60,9 +132,17 @@ export default function SafeShiftDashboard() {
   const getNextButtonText = () => {
     if (currentStep === 0) return "Next";
     if (currentStep === 1) return "Review";
-    if (currentStep === 2) return "Submit Report";
+    if (currentStep === 2) return submitLoading ? 'Submitting...' : "Submit Report"; // Added loading state
     return "Next";
   };
+
+  if (loading) {
+    return (
+      <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -137,6 +217,7 @@ export default function SafeShiftDashboard() {
             padding: 12px 15px;
             border-radius: 12px;
             transition: all 0.2s ease;
+            cursor: pointer; /* Added cursor pointer */
         }
 
         .nav-link:hover {
@@ -202,6 +283,9 @@ export default function SafeShiftDashboard() {
             margin-left: 15px;
             font-size: 0.95rem;
             cursor: pointer;
+            background: none; /* Make it look like a link/anchor */
+            border: none;
+            padding: 0;
         }
 
         .main-content {
@@ -943,7 +1027,7 @@ export default function SafeShiftDashboard() {
               </a>
             </li>
             <li className="nav-item">
-              <a href="#" className="nav-link">
+              <a className="nav-link" onClick={() => navigate('/profile')}>
                 <i className="fa-regular fa-user"></i>
                 Profile
               </a>
@@ -958,376 +1042,335 @@ export default function SafeShiftDashboard() {
 
           <div className="user-profile-mini">
             <div className="user-avatar-circle">
-              <i className="fa-solid fa-user"></i>
+              {user?.full_name?.charAt(0).toUpperCase() || 'E'}
             </div>
             <div className="user-info">
-              <h4>Employee</h4>
-              <p>Engineering</p>
+              <h4>{user?.full_name || 'Employee'}</h4>
+              <p>{user?.role || 'Employee'}</p>
             </div>
           </div>
           
-          <a href="#" className="logout-link">
+          <button className="logout-link" onClick={handleLogout}>
             <i className="fa-solid fa-arrow-right-from-bracket"></i> Log out
-          </a>
+          </button>
         </aside>
 
         <main className="main-content">
-          <header className="header-section">
+          
+          <section className="header-section">
             <div className="header-text">
-              <div style={{position: 'absolute', left: 0, top: '-15px', width: '90px', height: '90px', background: '#ffd700', borderRadius: '50%', transform: 'rotate(-5deg)'}}></div>
-              <h1>Good Morning, employee!</h1>
-              <p>Here's what's happening with your work today.</p>
+              <img src="https://i.ibb.co/689Nf0z/mascot-head.png" alt="Mascot Head" className="mascot-head" />
+              <h1>Welcome back, {user?.full_name?.split(' ')[0] || 'Employee'}!</h1>
+              <p>Your workspace safety overview for today.</p>
             </div>
-            
             <button className="submit-report-btn" onClick={openModal}>
-              <i className="fa-solid fa-plus"></i> Submit Report
+              <i className="fa-solid fa-plus"></i>
+              Submit New Report
             </button>
-          </header>
+          </section>
 
           <section className="stats-row">
             <div className="stat-card">
-              <div className="stat-icon"><i className="fa-regular fa-calendar"></i></div>
-              <div className="stat-info"><h3>12</h3><p>Days this month</p></div>
+              <div className="stat-icon" style={{borderColor: 'var(--button-blue)', color: 'var(--button-blue)'}}><i className="fa-regular fa-file-lines"></i></div>
+              <div className="stat-info">
+                <h3>{dashboardData?.reports?.length || 0}</h3>
+                <p>Reports submitted</p>
+              </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon"><i className="fa-regular fa-file-lines"></i></div>
-              <div className="stat-info"><h3>4</h3><p>Reports submitted</p></div>
+              <div className="stat-icon" style={{borderColor: 'var(--warning-yellow)', color: 'var(--warning-yellow)'}}><i className="fa-solid fa-circle-exclamation"></i></div>
+              <div className="stat-info">
+                <h3>{dashboardData?.open_reports?.length || 0}</h3>
+                <p>Reports in review</p>
+              </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon"><i className="fa-regular fa-envelope"></i></div>
-              <div className="stat-info"><h3>2</h3><p>New messages</p></div>
+              <div className="stat-icon" style={{borderColor: 'var(--accent-green)', color: 'var(--accent-green)'}}><i className="fa-solid fa-check"></i></div>
+              <div className="stat-info">
+                <h3>{dashboardData?.resolved_reports?.length || 0}</h3>
+                <p>Reports resolved</p>
+              </div>
             </div>
           </section>
 
-          <section className="dashboard-grid">
-            <div className="dashboard-card">
+          <div className="dashboard-grid">
+            <section className="dashboard-card" style={{gridColumn: 'span 2'}}>
               <div className="card-header">
-                <h3>Wellness Score</h3>
-                <i className="fa-regular fa-heart" style={{color: 'var(--accent-green)', fontSize: '1.2rem'}}></i>
+                <h3>Latest Activity</h3>
+                <a href="#" style={{textDecoration: 'none', color: 'var(--button-blue)', fontWeight: 800, fontSize: '0.9rem'}}>View All</a>
               </div>
-              <div className="wellness-content">
-                <div className="donut-chart"></div>
-                <div className="wellness-details">
-                  <h4>Good</h4>
-                  <p>Keep it up!</p>
-                </div>
+              <div className="report-list">
+                {dashboardData?.latest_reports?.slice(0, 5).map((report, index) => (
+                    <div className="report-item" key={index}>
+                        <div className="report-info">
+                            <h5>{report.title}</h5>
+                            <span>Type: {report.report_type} &bull; Dept: {report.department}</span>
+                        </div>
+                        <div className={`tag ${report.status === 'resolved' ? 'resolved' : 'review'}`}>
+                            {report.status === 'resolved' ? 'Resolved' : 'In Review'}
+                        </div>
+                    </div>
+                ))}
+                {(dashboardData?.latest_reports?.length === 0 || !dashboardData?.latest_reports) && (
+                    <p style={{textAlign: 'center', color: 'var(--text-grey)', padding: '20px 0'}}>No recent reports to display.</p>
+                )}
               </div>
-              <div className="wellness-metrics">
-                <div className="metric-row">
-                  <span><i className="fa-solid fa-scale-balanced"></i> Work-Life Balance</span>
-                  <div className="metric-bar-bg"><div className="metric-bar-fill" style={{width: '80%'}}></div></div>
-                </div>
-                <div className="metric-row">
-                  <span><i className="fa-solid fa-person-running"></i> Activity Level</span>
-                  <div className="metric-bar-bg"><div className="metric-bar-fill" style={{width: '60%', backgroundColor: '#ddd'}}></div></div>
-                </div>
-                <div className="metric-row">
-                  <span><i className="fa-solid fa-bolt"></i> Stress Level</span>
-                  <div className="metric-bar-bg"><div className="metric-bar-fill" style={{width: '30%', backgroundColor: '#ddd'}}></div></div>
-                </div>
-              </div>
-            </div>
+            </section>
+          </div>
 
-            <div className="dashboard-card">
-              <div className="card-header">
-                <h3>Performance Tracker</h3>
-                <i className="fa-regular fa-clock" style={{color: 'var(--button-blue)', fontSize: '1.2rem'}}></i>
-              </div>
-              <div className="status-badge">
-                <i className="fa-solid fa-bolt"></i> Current Status: Working
-              </div>
-              <div className="progress-container">
-                <div className="progress-label">
-                  <span>Today's Progress</span>
-                  <span style={{color: 'var(--accent-green)'}}>6.5h / 8h</span>
-                </div>
-                <div className="progress-bar">
-                  <div className="progress-fill"></div>
-                </div>
-                <div className="progress-label" style={{marginTop:'5px', fontWeight:'700', color:'#aaa', fontSize: '0.8rem'}}>
-                  <span>On Track</span>
-                  <span>81%</span>
-                </div>
-              </div>
-              <div style={{borderTop: '2px solid #f9f9f9', paddingTop: '15px', marginTop: '20px'}}>
-                <div style={{display:'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <span style={{fontWeight:'800', fontSize:'0.9rem'}}>This Week</span>
-                  <div className="trend-up">
-                    <i className="fa-solid fa-arrow-trend-up"></i> On Track
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="dashboard-card">
-              <div className="card-header">
-                <h3>Task Completion</h3>
-                <a href="#" style={{textDecoration:'none', color:'var(--text-dark)', fontWeight:'800', fontSize:'0.9rem'}}>+ Add</a>
-              </div>
-              <div className="wellness-content">
-                <div className="donut-chart donut-chart-small"></div>
-                <div className="wellness-details">
-                  <h4 style={{color:'var(--text-dark)', fontSize: '1.3rem'}}>2/5</h4>
-                  <p>Tasks Done</p>
-                </div>
-              </div>
-              <div style={{marginTop: '20px'}}>
-                <div style={{display:'flex', justifyContent:'space-between', marginBottom:'12px', fontSize:'0.85rem', fontWeight:'700'}}>
-                  <span style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                    <i className="fa-regular fa-circle-check" style={{color:'var(--accent-green)', fontSize:'1rem'}}></i> Quarterly report
-                  </span>
-                  <i className="fa-regular fa-flag" style={{color:'var(--alert-red)'}}></i>
-                </div>
-                <div style={{display:'flex', justifyContent:'space-between', marginBottom:'12px', fontSize:'0.85rem', fontWeight:'700'}}>
-                  <span style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                    <i className="fa-regular fa-circle-check" style={{color:'var(--accent-green)', fontSize:'1rem'}}></i> Team proposal
-                  </span>
-                  <i className="fa-regular fa-flag" style={{color:'var(--warning-yellow)'}}></i>
-                </div>
-              </div>
-            </div>
-
-            <div className="dashboard-card">
-              <div className="card-header">
-                <h3>My Recent Reports</h3>
-                <a href="#" style={{textDecoration:'none', color:'var(--text-grey)', fontWeight:'700', fontSize:'0.85rem'}}>View all</a>
-              </div>
-              <ul className="report-list">
-                <li className="report-item">
-                  <div className="report-info">
-                    <h5>Safety Concern</h5>
-                    <span>#Safe-001 • 2 days ago</span>
-                  </div>
-                  <span className="tag review">Under Review</span>
-                </li>
-                <li className="report-item">
-                  <div className="report-info">
-                    <h5>Policy Violation</h5>
-                    <span>#Safe-002 • 1 day ago</span>
-                  </div>
-                  <span className="tag resolved">Resolved</span>
-                </li>
-                <li className="report-item">
-                  <div className="report-info">
-                    <h5>Equipment Check</h5>
-                    <span>#Safe-003 • 5 hrs ago</span>
-                  </div>
-                  <span className="tag resolved">Resolved</span>
-                </li>
-              </ul>
-            </div>
-          </section>
         </main>
       </div>
 
       {/* Modal */}
-      <div className={`modal-overlay ${isModalOpen ? 'active' : ''}`} onClick={(e) => e.target.classList.contains('modal-overlay') && closeModal()}>
-        <div className="modal-container">
+      <div className={`modal-overlay ${isModalOpen ? 'active' : ''}`} onClick={closeModal}>
+        <div className="modal-container" onClick={e => e.stopPropagation()}>
           <div className="modal-header-figma">
+            <button className="close-modal" onClick={closeModal}><i className="fa-solid fa-xmark"></i></button>
             <div className="header-content-figma">
-              <div style={{width: '60px', height: '60px', background: '#c0c0c0', borderRadius: '8px'}}></div>
+              <img src="https://i.ibb.co/VMyhNf8/logo-icon.png" alt="Logo" className="modal-logo" />
               <div className="header-text-group">
                 <h3>{getModalTitle().title}</h3>
                 <p>{getModalTitle().sub}</p>
               </div>
             </div>
-            <button className="close-modal" onClick={closeModal}>&times;</button>
           </div>
-          
+
           <div className="modal-body">
-            {/* Step 1 */}
+            
+            {/* Step 0: Initial Details */}
             <div className={`form-step ${currentStep === 0 ? 'active' : ''}`}>
               <div className="form-group-modal">
-                <label>Report Title</label>
+                <label htmlFor="title">Report Title (Summary)</label>
                 <input 
                   type="text" 
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
+                  name="title" 
+                  value={formData.title} 
+                  onChange={handleInputChange} 
                   className="form-input-modal" 
-                  placeholder="Enter report title"
+                  placeholder="e.g., Damaged Wiring in Warehouse A"
                 />
               </div>
-              
               <div className="form-grid-modal">
                 <div className="form-group-modal">
-                  <label>Report Type</label>
+                  <label htmlFor="report_type">Report Type</label>
                   <select 
-                    name="category"
-                    value={formData.category}
+                    name="report_type"
+                    value={formData.report_type}
                     onChange={handleInputChange}
                     className="form-select-modal"
                   >
-                    <option>Select type</option>
-                    <option>Safety Concern</option>
-                    <option>Policy Violation</option>
-                    <option>Equipment Issue</option>
+                    <option value="safety_concern">Safety Concern</option>
+                    <option value="harassment">Harassment</option>
+                    <option value="policy_violation">Policy Violation</option>
+                    <option value="discrimination">Discrimination</option>
+                    <option value="fraud">Fraud</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
                 <div className="form-group-modal">
-                  <label>Severity Level</label>
+                  <label htmlFor="severity">Severity</label>
                   <select 
-                    name="severity"
-                    value={formData.severity}
-                    onChange={handleInputChange}
+                    name="severity" 
+                    value={formData.severity} 
+                    onChange={handleInputChange} 
                     className="form-select-modal"
                   >
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                    <option>Critical</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
                   </select>
                 </div>
               </div>
-
               <div className="form-grid-modal">
                 <div className="form-group-modal">
-                  <label>Date & Time</label>
+                  <label htmlFor="incident_date">Incident Date</label>
                   <input 
-                    type="datetime-local" 
-                    name="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
+                    type="date" 
+                    name="incident_date" 
+                    value={formData.incident_date} 
+                    onChange={handleInputChange} 
                     className="form-input-modal"
                   />
                 </div>
                 <div className="form-group-modal">
-                  <label>Location</label>
-                  <input 
-                    type="text" 
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className="form-input-modal" 
-                    placeholder="e.g. Warehouse B"
-                  />
+                  <label htmlFor="department_id">Department Affected (Optional)</label>
+                  <select 
+                    name="department_id" 
+                    value={formData.department_id} 
+                    onChange={handleInputChange} 
+                    className="form-select-modal"
+                  >
+                    <option value="">(Select Department)</option>
+                    {departments.map(dept => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-
               <div className="form-group-modal">
-                <label>Description</label>
+                <label htmlFor="description">Detailed Description</label>
                 <textarea 
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="form-textarea-modal" 
+                  name="description" 
+                  value={formData.description} 
+                  onChange={handleInputChange} 
+                  className="form-input-modal form-textarea-modal" 
                   rows="4" 
-                  placeholder="Please provide detailed information about the incident..."
+                  placeholder="Describe the incident in detail: what, where, when, and who was involved."
                 ></textarea>
               </div>
+              <div className="form-group-modal">
+                <label htmlFor="witness_information">Witness Information (Optional)</label>
+                <input 
+                  type="text" 
+                  name="witness_information" 
+                  value={formData.witness_information} 
+                  onChange={handleInputChange} 
+                  className="form-input-modal" 
+                  placeholder="Names or contact info of witnesses, if any"
+                />
+              </div>
+            </div>
 
+            {/* Step 1: Anonymity and Attachments */}
+            <div className={`form-step ${currentStep === 1 ? 'active' : ''}`}>
               <div className="modal-toggle-row">
                 <div className="toggle-left">
-                  <div className="toggle-icon">
-                    <div style={{width: '45px', height: '45px', background: '#ffd700', borderRadius: '50%'}}></div>
-                  </div>
+                  <div className="toggle-icon"><img src="https://i.ibb.co/C04Y57j/lock.png" alt="Anonymous Icon"/></div>
                   <div className="modal-toggle-info">
-                    <h4>Anonymous Submission</h4>
-                    <p>Hide my identity for this report</p>
+                    <h4>Report Anonymously</h4>
+                    <p>Your name will not be shared with the review team.</p>
                   </div>
                 </div>
                 <label className="switch">
                   <input 
                     type="checkbox" 
-                    name="anonymous"
-                    checked={formData.anonymous}
-                    onChange={handleInputChange}
+                    name="is_anonymous" 
+                    checked={formData.is_anonymous} 
+                    onChange={handleInputChange} 
                   />
                   <span className="slider"></span>
                 </label>
               </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className={`form-step ${currentStep === 1 ? 'active' : ''}`}>
-              <div className="form-group-modal">
-                <label>Attachments <span style={{fontWeight:'400', color:'var(--text-grey)', fontSize:'0.8rem'}}>(Optional)</span></label>
-                <div className="file-upload-box">
-                  <i className="fa-solid fa-cloud-arrow-up"></i>
-                  <p style={{fontWeight:'700', color:'var(--text-dark)'}}>Drag and drop files here</p>
-                  <p style={{fontSize:'0.8rem'}}>or browse files</p>
-                </div>
+              
+              <p className="review-section-label" style={{marginTop: '30px', marginBottom: '15px'}}>File Attachments</p>
+              <div className="file-upload-box">
+                <i className="fa-solid fa-cloud-arrow-up"></i>
+                <p>Drag & drop files here, or click to browse</p>
+                <p style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '5px'}}>Max file size: 5MB (PDF, JPG, PNG)</p>
+                <input type="file" multiple style={{display: 'none'}} />
               </div>
+              
+              {/* Attachment Placeholder */}
+              {/* <div style={{marginTop: '20px'}}>
+                <div className="attachment-preview">
+                    <i className="fa-solid fa-paperclip"></i>
+                    <span>wiring-photo-01.jpg</span>
+                </div>
+              </div> */}
             </div>
 
-            {/* Step 3 - Review */}
+            {/* Step 2: Review & Submit */}
             <div className={`form-step ${currentStep === 2 ? 'active' : ''}`}>
               <div className="review-card">
-                <div className="review-title-large">{formData.title || "Untitled Report"}</div>
-                
+                <h4 className="review-title-large">Report Overview</h4>
                 <div className="review-details-grid">
                   <div className="review-detail-item">
-                    <div className="review-icon-box"><i className="fa-regular fa-folder"></i></div>
+                    <div className="review-icon-box"><i className="fa-solid fa-tag"></i></div>
                     <div className="review-text">
-                      <label>Category</label>
-                      <p>{formData.category || "Uncategorized"}</p>
+                      <label>Type</label>
+                      <p>{formData.report_type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
                     </div>
                   </div>
                   <div className="review-detail-item">
-                    <div className="review-icon-box"><i className="fa-regular fa-calendar"></i></div>
-                    <div className="review-text">
-                      <label>Date</label>
-                      <p>{formatDate(formData.date)}</p>
-                    </div>
-                  </div>
-                  <div className="review-detail-item">
-                    <div className="review-icon-box"><i className="fa-solid fa-location-dot"></i></div>
-                    <div className="review-text">
-                      <label>Location</label>
-                      <p>{formData.location || "No location"}</p>
-                    </div>
-                  </div>
-                  <div className="review-detail-item">
-                    <div className="review-icon-box"><i className="fa-solid fa-circle-exclamation"></i></div>
+                    <div className="review-icon-box"><i className="fa-solid fa-triangle-exclamation"></i></div>
                     <div className="review-text">
                       <label>Severity</label>
-                      <p>{formData.severity}</p>
+                      <p style={{color: formData.severity === 'low' ? 'var(--accent-green)' : formData.severity === 'high' ? 'var(--alert-red)' : 'var(--warning-yellow)'}}>
+                        {formData.severity.charAt(0).toUpperCase() + formData.severity.slice(1)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="review-detail-item">
+                    <div className="review-icon-box"><i className="fa-solid fa-calendar-alt"></i></div>
+                    <div className="review-text">
+                      <label>Date</label>
+                      <p>{formatDate(formData.incident_date)}</p>
+                    </div>
+                  </div>
+                  <div className="review-detail-item">
+                    <div className="review-icon-box"><i className="fa-solid fa-building"></i></div>
+                    <div className="review-text">
+                      <label>Department</label>
+                      <p>{departments.find(d => d.id === formData.department_id)?.name || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="review-detail-item">
+                    <div className="review-icon-box"><i className="fa-solid fa-user-secret"></i></div>
+                    <div className="review-text">
+                      <label>Reporting As</label>
+                      <p>{formData.is_anonymous ? 'Anonymous' : user?.full_name || 'Logged In User'}</p>
+                    </div>
+                  </div>
+                  <div className="review-detail-item">
+                    <div className="review-icon-box"><i className="fa-solid fa-user-group"></i></div>
+                    <div className="review-text">
+                      <label>Witness Info</label>
+                      <p>{formData.witness_information || 'None Provided'}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="review-section-label">Description</div>
-                <div className="review-description-box">
-                  {formData.description || "No description provided."}
-                </div>
-
-                <div className="review-section-label">Attachments</div>
-                <div className="attachment-preview">
-                  <i className="fa-solid fa-paperclip" style={{color:'var(--text-grey)'}}></i> 
-                  <span>No files attached</span>
-                </div>
+                <p className="review-section-label">Report Title</p>
+                <p className="review-description-box" style={{fontWeight: 800}}>{formData.title || 'No Title Provided'}</p>
+                
+                <p className="review-section-label">Detailed Description</p>
+                <p className="review-description-box">{formData.description || 'No description provided.'}</p>
+                
+                <p className="review-section-label">Attachments ({formData.attachments.length})</p>
+                {formData.attachments.length === 0 ? (
+                    <p className="review-description-box" style={{marginBottom: '0'}}>No files attached.</p>
+                ) : (
+                    // Placeholder for actual attachment list
+                    <p className="review-description-box" style={{marginBottom: '0'}}>Attachment list placeholder...</p>
+                )}
               </div>
-
+              
               <div className="captcha-box">
-                <label className="captcha-container">
-                  <input type="checkbox" />
-                  I'm not a robot
-                </label>
-                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" className="captcha-logo" alt="reCAPTCHA" />
+                <div className="captcha-container">
+                    <input type="checkbox" id="captcha-check" name="captcha-check" />
+                    <label htmlFor="captcha-check">I am not a robot</label>
+                </div>
+                <img src="https://www.google.com/recaptcha/about/images/reCAPTCHA-logo-icon.svg" alt="reCAPTCHA" className="captcha-logo" />
               </div>
             </div>
-
-            {/* Step 4 - Success */}
+            
+            {/* Step 3: Success */}
             <div className={`form-step ${currentStep === 3 ? 'active' : ''}`}>
               <div className="success-content">
-                <div className="success-icon">
-                  <i className="fa-solid fa-check"></i>
-                </div>
-                <h2>Report Submitted Successfully</h2>
-                <p>Your report has been received and is under review.</p>
-                <button className="modal-btn-primary" onClick={closeModal}>Back to Dashboard</button>
+                <div className="success-icon"><i className="fa-solid fa-check"></i></div>
+                <h2>Report Submitted!</h2>
+                <p>Your report has been successfully submitted for review. You can track its progress in the 'Reports' section. Thank you for helping us keep our workplace safe.</p>
+                <button className="modal-btn-primary" onClick={closeModal} style={{boxShadow: 'none', background: 'var(--accent-green)', color: 'white'}}>
+                    Close Dashboard
+                </button>
               </div>
             </div>
+
           </div>
 
-          {currentStep < 3 && (
-            <div className="modal-footer" style={{justifyContent: currentStep === 0 ? 'flex-end' : 'space-between'}}>
-              {currentStep > 0 && (
-                <button className="modal-btn-secondary" onClick={handleBack}>Back</button>
-              )}
-              <button className="modal-btn-primary" onClick={handleNext}>{getNextButtonText()}</button>
-            </div>
-          )}
+          <div className="modal-footer">
+            {currentStep > 0 && currentStep < 3 && (
+                <button className="modal-btn-secondary" onClick={handleBack}>
+                    Back
+                </button>
+            )}
+            {currentStep < 3 && (
+                <button className="modal-btn-primary" onClick={handleNext} disabled={submitLoading}>
+                    {getNextButtonText()}
+                </button>
+            )}
+          </div>
         </div>
       </div>
     </>
