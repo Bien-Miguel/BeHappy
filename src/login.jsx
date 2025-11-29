@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-import clouds from './ui/clouds.png';
-import characters from './ui/characters.png';
-import logo from './ui/logo.png';
 
 export default function App() {
   const [email, setEmail] = useState('');
@@ -60,11 +57,10 @@ export default function App() {
 
         /* --- LEFT SECTION (BLUE WITH CLOUDS) --- */
         .left-panel {
-            flex: 2;
+            flex: 1;
             background-color: var(--primary-blue);
-            background-image: url(${clouds}); 
-            background-size: cover;
-            background-size: 1200px;
+            background-image: url('ui/clouds.png'); 
+            background-size: cover; /* Changed to cover to ensure it fills better */
             background-position: bottom; 
             background-repeat: no-repeat;
             padding: 40px 60px 0 60px;
@@ -105,19 +101,19 @@ export default function App() {
         }
 
         .illustration {
-            width: 200%;
-            max-width: 950px; 
+            width: 100%;
+            max-width: 650px; 
             height: auto;
             margin-top: auto; 
             align-self: center;
             z-index: 1;
             display: block;
+            /* Fix for image scaling if needed */
             object-fit: contain;
         }
 
         /* --- RIGHT SECTION (FORM) --- */
         .right-panel {
-            margin-left: 200px;
             flex: 1;
             background-color: var(--white);
             display: flex;
@@ -310,14 +306,14 @@ export default function App() {
         {/* Left Panel */}
         <div className="left-panel">
             
-            <img src={logo} className="logo" />
+            <img src="ui/logo.png" alt="SafeShift Logo" className="logo" />
 
             <div className="hero-text">
                 <h1>Create a safer,<br/>healthier workplace</h1>
                 <p>Empower your team to voice concerns anonymously while gaining insights to build a culture of trust and transparency.</p>
             </div>
 
-            <img src={characters} className="illustration" />
+            <img src="ui/characters.png" alt="Characters and Mascot" className="illustration" />
 
         </div>
 
