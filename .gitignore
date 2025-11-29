@@ -1,0 +1,39 @@
+# ------------------------------------
+# 1. PYTHON/FASTAPI BACKEND IGNORES
+# ------------------------------------
+
+# Virtual Environment folder: DO NOT COMMIT
+/backend/venv/
+
+# Environment variable file: CONTAINS SECRETS (DB URLs, JWT Keys)
+/backend/.env
+
+# Byte-compiled files
+__pycache__/
+*.pyc
+
+# Database file artifacts (e.g., if using SQLite, but good to include)
+*.sqlite
+*.db
+
+# Alembic database migrations environment files (if Bien sets this up)
+/backend/migrations/versions/
+
+# IDE/Editor files (e.g., VS Code settings)
+.vscode/
+.idea/
+
+
+# ------------------------------------
+# 2. NODE.JS/REACT FRONTEND IGNORES
+# ------------------------------------
+
+# Node modules folder: Large compiled library folder
+/frontend/node_modules/
+
+# Build output folder (Vite default is 'dist')
+/frontend/dist/
+
+# Logs and lock files
+npm-debug.log
+.npm/
