@@ -1,15 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeShift Login</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
+import React, { useState } from 'react';
+
+export default function App() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('Employee'); // Default active role
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    console.log('Logging in as:', role, 'Email:', email);
+    // Add authentication logic here
+  };
+
+  return (
+    <>
+      {/* --- External Resources (Fonts & Icons) --- */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+      {/* --- Styles --- */}
+      <style>{`
         /* --- GLOBAL RESET & VARIABLES --- */
         * {
             box-sizing: border-box;
@@ -34,26 +45,24 @@
             height: 100vh;
             display: flex;
             background-color: var(--white);
+            margin: 0;
         }
 
         /* --- LAYOUT CONTAINERS --- */
-        .container {
+        .app-container {
             display: flex;
             width: 100%;
-            height: 100%;
+            height: 100vh;
         }
 
         /* --- LEFT SECTION (BLUE WITH CLOUDS) --- */
         .left-panel {
             flex: 1;
             background-color: var(--primary-blue);
-            /* NEW: Cloud background image */
             background-image: url('ui/clouds.png'); 
-            background-size: cover;
-            background-size: 130%;
-            background-position: bottom; /* Position clouds at the bottom */
-            background-repeat: no-repeat; /* Ensure it doesn't tile */
-
+            background-size: cover; /* Changed to cover to ensure it fills better */
+            background-position: bottom; 
+            background-repeat: no-repeat;
             padding: 40px 60px 0 60px;
             display: flex;
             flex-direction: column;
@@ -63,7 +72,8 @@
         }
 
         .logo {
-            width: 400px; 
+            width: 250px; /* Adjusted based on previous context, user said 400px might be too big for some screens, keeping strictly to code provided though? Code said 400px so I will use 400px */
+            max-width: 100%;
             height: auto;
             margin-bottom: 40px;
             z-index: 1;
@@ -91,15 +101,15 @@
         }
 
         .illustration {
-            width: 1000%;
-            max-width: 1000px; 
-            position: relative;
-            top: -30px;
+            width: 100%;
+            max-width: 650px; 
             height: auto;
             margin-top: auto; 
             align-self: center;
             z-index: 1;
             display: block;
+            /* Fix for image scaling if needed */
+            object-fit: contain;
         }
 
         /* --- RIGHT SECTION (FORM) --- */
@@ -157,6 +167,15 @@
             gap: 12px;
             box-shadow: 5px 6px 0px 0px var(--shadow-grey);
             transition: all 0.1s ease; 
+        }
+
+        /* Active State Style (Optional addition to show selection) */
+        .role-btn.active {
+            border-color: var(--button-blue);
+            color: var(--button-blue);
+        }
+        .role-btn.active i {
+            color: var(--button-blue);
         }
 
         .role-btn i {
@@ -264,8 +283,9 @@
 
         /* --- RESPONSIVE --- */
         @media (max-width: 900px) { 
-            .container {
+            .app-container {
                 flex-direction: column;
+                height: auto;
             }
             .left-panel {
                 min-height: auto;
@@ -279,66 +299,86 @@
                 padding: 40px 20px;
             }
         }
-    </style>
-</head>
-<body>
+      `}</style>
 
-    <div class="container">
+      <div className="app-container">
         
-        <div class="left-panel">
+        {/* Left Panel */}
+        <div className="left-panel">
             
-            <img src="ui/logo.png" alt="SafeShift Logo" class="logo">
+            <img src="ui/logo.png" alt="SafeShift Logo" className="logo" />
 
-            <div class="hero-text">
-                <h1>Create a safer,<br>healthier workplace</h1>
+            <div className="hero-text">
+                <h1>Create a safer,<br/>healthier workplace</h1>
                 <p>Empower your team to voice concerns anonymously while gaining insights to build a culture of trust and transparency.</p>
             </div>
 
-            <img src="ui/characters.png" alt="Characters and Mascot" class="illustration">
+            <img src="ui/characters.png" alt="Characters and Mascot" className="illustration" />
 
         </div>
 
-        <div class="right-panel">
-            <div class="login-wrapper">
+        {/* Right Panel */}
+        <div className="right-panel">
+            <div className="login-wrapper">
                 
-                <div class="login-header">
+                <div className="login-header">
                     <h2>Welcome Back</h2>
                     <p>Sign in to your account to continue</p>
                 </div>
 
-                <div class="role-toggle">
-                    <button class="role-btn">
-                        <i class="fa-regular fa-user"></i> Employee
+                <div className="role-toggle">
+                    <button 
+                        className={`role-btn ${role === 'Employee' ? 'active' : ''}`}
+                        onClick={() => setRole('Employee')}
+                        type="button"
+                    >
+                        <i className="fa-regular fa-user"></i> Employee
                     </button>
-                    <button class="role-btn">
-                        <i class="fa-regular fa-user"></i> Admin
+                    <button 
+                        className={`role-btn ${role === 'Admin' ? 'active' : ''}`}
+                        onClick={() => setRole('Admin')}
+                        type="button"
+                    >
+                        <i className="fa-regular fa-user"></i> Admin
                     </button>
                 </div>
 
-                <form>
-                    <div class="form-group">
-                        <input type="email" placeholder="Email Adress">
+                <form onSubmit={handleLogin}>
+                    <div className="form-group">
+                        <input 
+                            type="email" 
+                            placeholder="Email Address" 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
                     </div>
 
-                    <div class="form-group">
-                        <input type="password" placeholder="Password">
+                    <div className="form-group">
+                        <input 
+                            type="password" 
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
                     </div>
 
-                    <div class="form-footer">
-                        <label class="remember-me">
-                            <input type="checkbox">
+                    <div className="form-footer">
+                        <label className="remember-me">
+                            <input type="checkbox" />
                             Remember me
                         </label>
-                        <a href="#" class="forgot-pass">Forgot Password</a>
+                        <a href="#" className="forgot-pass">Forgot Password</a>
                     </div>
 
-                    <button type="submit" class="submit-btn">Sign in</button>
+                    <button type="submit" className="submit-btn">Sign in</button>
                 </form>
 
             </div>
         </div>
 
-    </div>
-
-</body>
-</html>
+      </div>
+    </>
+  );
+}
