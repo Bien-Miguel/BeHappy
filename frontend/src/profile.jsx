@@ -1,15 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeShift Profile</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
+import React from 'react';
+
+export default function Profile({ onLogout }) {
+  return (
+    <>
+      <style>{`
         /* --- GLOBAL VARIABLES --- */
         :root {
             --primary-blue: #64a6ff; 
@@ -23,24 +17,19 @@
             --white: #ffffff;
             --border-color: #f0f0f0;
             --shadow-grey: #cacaca; 
-            --input-bg: #f0f2f5; /* Light grey for inputs/rows */
+            --input-bg: #f0f2f5;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
+        .profile-container {
             font-family: 'Nunito', sans-serif;
             background-color: #fcfcfc; 
             color: var(--text-dark);
             height: 100vh;
             display: flex;
+            width: 100%;
         }
 
-        /* --- SIDEBAR (Copied from Dashboard) --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 280px;
             padding: 40px 30px;
@@ -58,6 +47,8 @@
 
         .nav-menu {
             list-style: none;
+            padding: 0;
+            margin: 0;
             flex-grow: 1;
         }
 
@@ -76,6 +67,7 @@
             padding: 12px 15px;
             border-radius: 12px;
             transition: all 0.2s ease;
+            cursor: pointer;
         }
 
         .nav-link:hover {
@@ -83,11 +75,11 @@
             color: var(--button-blue);
         }
 
-        /* Active State for Profile */
         .nav-link.active {
             color: var(--accent-green);
             background-color: #e6fffa;
         }
+        
         .nav-link.active i {
             color: var(--accent-green);
         }
@@ -124,11 +116,13 @@
         .user-info h4 {
             font-size: 0.95rem;
             font-weight: 800;
+            margin: 0;
         }
         .user-info p {
             font-size: 0.8rem;
             color: var(--text-grey);
             font-weight: 600;
+            margin: 0;
         }
 
         .logout-link {
@@ -140,6 +134,9 @@
             font-weight: 800;
             margin-left: 15px;
             font-size: 0.95rem;
+            cursor: pointer;
+            background: none;
+            border: none;
         }
 
         /* --- MAIN CONTENT --- */
@@ -181,16 +178,17 @@
             font-weight: 900;
             color: var(--text-dark);
             line-height: 1.1;
+            margin: 0 0 8px 0;
         }
 
         .header-text p {
             color: var(--text-grey);
             font-weight: 700;
             font-size: 1.1rem;
-            margin-top: 8px;
+            margin: 0;
         }
 
-        /* Top Right User Info in Header */
+        /* Top Right User Info */
         .header-user {
             display: flex;
             align-items: center;
@@ -202,6 +200,7 @@
         .header-user-info h3 {
             font-size: 1rem;
             font-weight: 800;
+            margin: 0;
         }
         .header-user-info span {
             font-size: 0.8rem;
@@ -238,7 +237,6 @@
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
-            /* Hard Shadow */
             box-shadow: 5px 6px 0px 0px var(--shadow-grey);
         }
 
@@ -255,7 +253,6 @@
         .card-title i {
             color: var(--button-blue); 
         }
-        /* Make checkbox card title distinct */
         .card-title.no-border {
             border-bottom: none;
             padding-bottom: 0;
@@ -272,7 +269,7 @@
         .big-avatar {
             width: 80px;
             height: 80px;
-            background-color: #e0e7ff; /* Light indigo background */
+            background-color: #e0e7ff; 
             color: var(--button-blue);
             border-radius: 50%;
             display: flex;
@@ -301,10 +298,12 @@
         .profile-name h2 {
             font-weight: 900;
             font-size: 1.4rem;
+            margin: 0 0 5px 0;
         }
         .profile-name p {
             color: var(--text-grey);
             font-weight: 600;
+            margin: 0;
         }
 
         /* Form Grid */
@@ -384,12 +383,13 @@
         .notification-info h4 {
             font-size: 0.95rem;
             font-weight: 800;
-            margin-bottom: 4px;
+            margin: 0 0 4px 0;
         }
         .notification-info p {
             font-size: 0.8rem;
             color: var(--text-grey);
             font-weight: 600;
+            margin: 0;
         }
 
         /* The Switch Container */
@@ -438,7 +438,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #f0f7ff; /* Very light blue for rows */
+            background-color: #f0f7ff;
             padding: 12px 15px;
             border-radius: 8px;
             margin-bottom: 10px;
@@ -446,10 +446,12 @@
         .activity-details h5 {
             font-size: 0.9rem;
             font-weight: 800;
+            margin: 0;
         }
         .activity-details p {
             font-size: 0.75rem;
             color: var(--text-grey);
+            margin: 0;
         }
         .activity-time {
             font-size: 0.75rem;
@@ -464,7 +466,7 @@
             }
         }
         @media (max-width: 768px) {
-            body { flex-direction: column; }
+            .profile-container { flex-direction: column; }
             .sidebar { width: 100%; border-right: none; border-bottom: 2px solid #eee; }
             .main-content { padding: 30px 20px; }
             .mascot-head { display: none; } 
@@ -472,227 +474,232 @@
             .header-user { align-self: flex-end; }
             .header-text { padding-left: 0; }
         }
-    </style>
-</head>
-<body>
+      `}</style>
 
-    <aside class="sidebar">
-        <img src="ui/logo.png" alt="SafeShift" class="logo">
-
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <a href="dashboard.html" class="nav-link">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fa-solid fa-file-lines"></i>
-                    Reports
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link active">
-                    <i class="fa-regular fa-user"></i>
-                    Profile
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fa-solid fa-gear"></i>
-                    Settings
-                </a>
-            </li>
-        </ul>
-
-        <div class="user-profile-mini">
-            <div class="user-avatar-circle">
-                <i class="fa-solid fa-user"></i>
-            </div>
-            <div class="user-info">
-                <h4>Employee</h4>
-                <p>Engineering</p>
-            </div>
-        </div>
+      <div className="profile-container">
         
-        <a href="#" class="logout-link">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i> Log out
-        </a>
-    </aside>
+        {/* Sidebar */}
+        <aside className="sidebar">
+            <img src="ui/logo.png" alt="SafeShift" className="logo" />
 
-    <main class="main-content">
-        
-        <header class="header-section">
-            <div class="header-text">
-                <img src="ui/fox.png" class="mascot-head" alt="Mascot">
-                <h1>My Account</h1>
-                <p>Manage your account settings and preferences</p>
-            </div>
+            <ul className="nav-menu">
+                <li className="nav-item">
+                    <a className="nav-link">
+                        <i className="fa-solid fa-gauge-high"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li className="nav-item">
+                    <a className="nav-link">
+                        <i className="fa-solid fa-file-lines"></i>
+                        Reports
+                    </a>
+                </li>
+                <li className="nav-item">
+                    <a className="nav-link active">
+                        <i className="fa-regular fa-user"></i>
+                        Profile
+                    </a>
+                </li>
+                <li className="nav-item">
+                    <a className="nav-link">
+                        <i className="fa-solid fa-gear"></i>
+                        Settings
+                    </a>
+                </li>
+            </ul>
 
-            <div class="header-user">
-                <div class="header-user-info">
-                    <h3>Employee</h3>
-                    <span>Engineering</span>
+            <div className="user-profile-mini">
+                <div className="user-avatar-circle">
+                    <i className="fa-solid fa-user"></i>
                 </div>
-                <div class="header-avatar">
-                    <i class="fa-solid fa-user"></i>
-                    <div class="status-dot"></div>
+                <div className="user-info">
+                    <h4>Employee</h4>
+                    <p>Engineering</p>
                 </div>
-            </div>
-        </header>
-
-        <section class="profile-card">
-            <div class="card-title">
-                <i class="fa-regular fa-id-card"></i> Personal Information
-            </div>
-
-            <div class="profile-header">
-                <div class="big-avatar">
-                    e
-                    <div class="camera-icon">
-                        <i class="fa-solid fa-camera"></i>
-                    </div>
-                </div>
-                <div class="profile-name">
-                    <h2>Employee</h2>
-                    <p>Engineering Team</p>
-                </div>
-            </div>
-
-            <form class="form-grid">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" class="form-input" value="you@gmail.com">
-                </div>
-                <div class="form-group">
-                    <label>Employee ID</label>
-                    <input type="text" class="form-input" value="2410746" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Department</label>
-                    <input type="text" class="form-input" value="Engineering">
-                </div>
-                <div class="form-group">
-                    <label>Role</label>
-                    <input type="text" class="form-input" value="Employee" readonly>
-                </div>
-            </form>
-        </section>
-
-        <section class="profile-card">
-            <div class="card-title">
-                <i class="fa-solid fa-lock"></i> Change Password
-            </div>
-            <form>
-                <div class="form-group">
-                    <label>Current Password</label>
-                    <input type="password" class="form-input" placeholder="Enter current password">
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>New Password</label>
-                        <input type="password" class="form-input" placeholder="Enter new password">
-                    </div>
-                    <div class="form-group">
-                        <label>Confirm New Password</label>
-                        <input type="password" class="form-input" placeholder="Enter new password again">
-                    </div>
-                </div>
-                <button type="button" class="update-btn">Update Password</button>
-            </form>
-        </section>
-
-        <section class="profile-card">
-            <div class="card-title no-border">
-                <i class="fa-regular fa-bell"></i> Notification Preferences
-            </div>
-            <p style="font-size:0.85rem; color:var(--text-grey); margin-bottom:20px;">Choose how you want to be notified</p>
-
-            <div class="notification-row">
-                <div class="notification-info">
-                    <h4>Email notification for reports</h4>
-                    <p>Get notified when your reports are updated</p>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="notification-row">
-                <div class="notification-info">
-                    <h4>Email notification for tasks</h4>
-                    <p>Get reminders about upcoming task deadlines</p>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="notification-row">
-                <div class="notification-info">
-                    <h4>Push notifications</h4>
-                    <p>Receive push notifications in your browser</p>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="notification-row">
-                <div class="notification-info">
-                    <h4>Weekly digest</h4>
-                    <p>Get a summary of your activity each week</p>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </section>
-
-        <section class="profile-card">
-            <div class="card-title no-border">
-                <i class="fa-solid fa-clock-rotate-left"></i> Account Activity
             </div>
             
-            <div class="activity-item">
-                <div class="activity-details">
-                    <h5>Logged in</h5>
-                    <p>IP: 192.168.1.***</p>
+            <button className="logout-link" onClick={onLogout}>
+                <i className="fa-solid fa-arrow-right-from-bracket"></i> Log out
+            </button>
+        </aside>
+
+        {/* Main Content */}
+        <main className="main-content">
+            
+            <header className="header-section">
+                <div className="header-text">
+                    <img src="ui/fox.png" className="mascot-head" alt="Mascot" />
+                    <h1>My Account</h1>
+                    <p>Manage your account settings and preferences</p>
                 </div>
-                <div class="activity-time">Nov 28, 2025, 11:08 PM</div>
-            </div>
 
-            <div class="activity-item">
-                <div class="activity-details">
-                    <h5>Submitted report #REP-847</h5>
-                    <p>IP: 192.168.1.***</p>
+                <div className="header-user">
+                    <div className="header-user-info">
+                        <h3>Employee</h3>
+                        <span>Engineering</span>
+                    </div>
+                    <div className="header-avatar">
+                        <i className="fa-solid fa-user"></i>
+                        <div className="status-dot"></div>
+                    </div>
                 </div>
-                <div class="activity-time">Nov 28, 2025, 11:08 PM</div>
-            </div>
+            </header>
 
-            <div class="activity-item">
-                <div class="activity-details">
-                    <h5>Updated profile picture</h5>
-                    <p>IP: 192.168.1.***</p>
+            <section className="profile-card">
+                <div className="card-title">
+                    <i className="fa-regular fa-id-card"></i> Personal Information
                 </div>
-                <div class="activity-time">Nov 28, 2025, 11:08 PM</div>
-            </div>
 
-            <div class="activity-item">
-                <div class="activity-details">
-                    <h5>Changed password</h5>
-                    <p>IP: 192.168.1.***</p>
+                <div className="profile-header">
+                    <div className="big-avatar">
+                        e
+                        <div className="camera-icon">
+                            <i className="fa-solid fa-camera"></i>
+                        </div>
+                    </div>
+                    <div className="profile-name">
+                        <h2>Employee</h2>
+                        <p>Engineering Team</p>
+                    </div>
                 </div>
-                <div class="activity-time">Nov 28, 2025, 11:08 PM</div>
-            </div>
-        </section>
 
-    </main>
+                <form className="form-grid">
+                    <div className="form-group">
+                        <label>Email Address</label>
+                        <input type="email" className="form-input" defaultValue="you@gmail.com" />
+                    </div>
+                    <div className="form-group">
+                        <label>Employee ID</label>
+                        <input type="text" className="form-input" defaultValue="2410746" readOnly />
+                    </div>
+                    <div className="form-group">
+                        <label>Department</label>
+                        <input type="text" className="form-input" defaultValue="Engineering" />
+                    </div>
+                    <div className="form-group">
+                        <label>Role</label>
+                        <input type="text" className="form-input" defaultValue="Employee" readOnly />
+                    </div>
+                </form>
+            </section>
 
-</body>
-</html>
+            <section className="profile-card">
+                <div className="card-title">
+                    <i className="fa-solid fa-lock"></i> Change Password
+                </div>
+                <form>
+                    <div className="form-group">
+                        <label>Current Password</label>
+                        <input type="password" className="form-input" placeholder="Enter current password" />
+                    </div>
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>New Password</label>
+                            <input type="password" className="form-input" placeholder="Enter new password" />
+                        </div>
+                        <div className="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" className="form-input" placeholder="Enter new password again" />
+                        </div>
+                    </div>
+                    <button type="button" className="update-btn">Update Password</button>
+                </form>
+            </section>
+
+            <section className="profile-card">
+                <div className="card-title no-border">
+                    <i className="fa-regular fa-bell"></i> Notification Preferences
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-grey)', marginBottom: '20px' }}>
+                    Choose how you want to be notified
+                </p>
+
+                <div className="notification-row">
+                    <div className="notification-info">
+                        <h4>Email notification for reports</h4>
+                        <p>Get notified when your reports are updated</p>
+                    </div>
+                    <label className="switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+
+                <div className="notification-row">
+                    <div className="notification-info">
+                        <h4>Email notification for tasks</h4>
+                        <p>Get reminders about upcoming task deadlines</p>
+                    </div>
+                    <label className="switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+
+                <div className="notification-row">
+                    <div className="notification-info">
+                        <h4>Push notifications</h4>
+                        <p>Receive push notifications in your browser</p>
+                    </div>
+                    <label className="switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+
+                <div className="notification-row">
+                    <div className="notification-info">
+                        <h4>Weekly digest</h4>
+                        <p>Get a summary of your activity each week</p>
+                    </div>
+                    <label className="switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+            </section>
+
+            <section className="profile-card">
+                <div className="card-title no-border">
+                    <i className="fa-solid fa-clock-rotate-left"></i> Account Activity
+                </div>
+                
+                <div className="activity-item">
+                    <div className="activity-details">
+                        <h5>Logged in</h5>
+                        <p>IP: 192.168.1.***</p>
+                    </div>
+                    <div className="activity-time">Nov 28, 2025, 11:08 PM</div>
+                </div>
+
+                <div className="activity-item">
+                    <div className="activity-details">
+                        <h5>Submitted report #REP-847</h5>
+                        <p>IP: 192.168.1.***</p>
+                    </div>
+                    <div className="activity-time">Nov 28, 2025, 11:08 PM</div>
+                </div>
+
+                <div className="activity-item">
+                    <div className="activity-details">
+                        <h5>Updated profile picture</h5>
+                        <p>IP: 192.168.1.***</p>
+                    </div>
+                    <div className="activity-time">Nov 28, 2025, 11:08 PM</div>
+                </div>
+
+                <div className="activity-item">
+                    <div className="activity-details">
+                        <h5>Changed password</h5>
+                        <p>IP: 192.168.1.***</p>
+                    </div>
+                    <div className="activity-time">Nov 28, 2025, 11:08 PM</div>
+                </div>
+            </section>
+
+        </main>
+      </div>
+    </>
+  );
+}
