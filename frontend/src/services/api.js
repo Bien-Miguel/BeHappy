@@ -244,3 +244,36 @@ export const clearAuthData = () => {
 };
 
 export default api;
+
+
+// Add this to the end of your api.js file
+
+// ==================== ACTIVITY TRACKING ====================
+let activityInterval = null;
+
+export const startActivityTracking = () => {
+  // Clear any existing interval
+  if (activityInterval) {
+    clearInterval(activityInterval);
+  }
+
+  // Send initial heartbeat
+  activityAPI.sendHeartbeat().catch(err => 
+    console.error('Initial heartbeat failed:', err)
+  );
+
+  // Send heartbeat every 5 minutes
+  activityInterval = setInterval(() => {
+    activityAPI.sendHeartbeat().catch(err => 
+      console.error('Heartbeat failed:', err)
+    );
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // Return cleanup function
+  return () => {
+    if (activityInterval) {
+      clearInterval(activityInterval);
+      activityInterval = null;
+    }
+  };
+};

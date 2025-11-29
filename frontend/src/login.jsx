@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import clouds from './ui/clouds.png';
+import characters from './ui/characters.png';
+import logo from './ui/logo.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -338,14 +341,16 @@ export default function Login() {
 
       <div className="app-container">
         <div className="left-panel">
-          <div style={{width: '250px', height: '60px', background: '#e0e0e0', borderRadius: '8px', marginBottom: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '800'}}>LOGO</div>
+          
+           <img src={logo} className="logo" />
 
           <div className="hero-text">
             <h1>Create a safer,<br/>healthier workplace</h1>
             <p>Empower your team to voice concerns anonymously while gaining insights to build a culture of trust and transparency.</p>
           </div>
 
-          <div style={{width: '100%', maxWidth: '650px', height: '300px', background: '#c0c0c0', borderRadius: '16px', marginTop: 'auto', alignSelf: 'center'}}></div>
+          <img src={characters} className="illustration" />
+          
         </div>
 
         <div className="right-panel">

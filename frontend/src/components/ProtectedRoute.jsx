@@ -1,10 +1,11 @@
 // frontend/src/components/ProtectedRoute.jsx
+// frontend/src/components/ProtectedRoute.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, loading } = useAuth();
+export default function ProtectedRoute({ children, adminOnly = false }) {
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -37,15 +38,15 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     );
   }
 
-  if (!user) {
+  // Not authenticated -> redirect to login
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && user.role !== 'admin') {
+  // Admin route but user is not admin -> redirect to employee dashboard
+  if (adminOnly && !isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
-};
-
-export default ProtectedRoute;
+}

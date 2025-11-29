@@ -1,58 +1,3 @@
-# =====================================================
-# FastAPI + Supabase Configuration
-# =====================================================
-# File: config/database.py
-
-import os
-from supabase import create_client, Client
-from dotenv import load_dotenv
-from pathlib import Path
-
-# Get the backend directory path
-backend_dir = Path(__file__).resolve().parent.parent
-
-# Load environment variables from .env file
-env_path = "C:/Users/Windows 10 Pro/BeHappy/backend/.env"
-load_dotenv(dotenv_path=env_path)
-
-# Supabase Configuration
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # Use anon key for client, service_role for admin
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")  # For bypassing RLS
-
-# Validate environment variables
-if not SUPABASE_URL:
-    raise ValueError(f"SUPABASE_URL not found in environment variables. Looking in: {env_path}")
-if not SUPABASE_KEY:
-    raise ValueError("SUPABASE_KEY not found in environment variables")
-if not SUPABASE_SERVICE_KEY:
-    raise ValueError("SUPABASE_SERVICE_KEY not found in environment variables")
-
-print(f"✅ Loaded environment from: {env_path}")
-print(f"✅ Supabase URL: {SUPABASE_URL}")
-
-# Initialize Supabase clients
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-supabase_admin: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-
-def get_supabase() -> Client:
-    """
-    Returns Supabase client for regular operations (respects RLS)
-    """
-    return supabase
-
-def get_supabase_admin() -> Client:
-    """
-    Returns Supabase admin client (bypasses RLS)
-    Use for system operations like activity logging
-    """
-    return supabase_admin
-
-
-# =====================================================
-# File: main.py
-# =====================================================
-
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -98,7 +43,7 @@ async def get_current_user(
             )
         
         # Get user profile
-        profile = get_supabase_admin().table("profiles").select("*").eq("id", response.user.id).execute()
+        profile = supabase.table("profiles").select("*").eq("id", user.user.id).execute()
         
         if not profile.data:
             raise HTTPException(
@@ -457,27 +402,31 @@ async def get_dashboard_metrics(
     try:
         if current_user["role"] == "admin":
             # Admin dashboard metrics
-            metrics = supabase.table("admin_dashboard_metrics").select("*").execute()
-            departments = supabase.table("department_health").select("*").execute()
+            metrics_result = supabase.table("admin_dashboard_metrics").select("*").execute()
+            departments_result = supabase.table("department_health").select("*").execute()
+            
+            metrics = metrics_result.data[0] if metrics_result.data else {
+                "total_employees": 0,
+                "active_reports": 0,
+                "flagged_reports": 0,
+                "total_departments": 0
+            }
             
             return {
-                "metrics": metrics.data[0] if metrics.data else {},
-                "departments": departments.data
+                "metrics": metrics,
+                "departments": departments_result.data or []
             }
         else:
             # Employee dashboard metrics
-            # Get tasks
             tasks = supabase.table("tasks").select("*").eq(
                 "employee_id", current_user["id"]
             ).execute()
             
-            # Get wellness score
             wellness = supabase.table("wellness_scores").select("*").eq(
                 "employee_id", current_user["id"]
             ).order("calculated_at", desc=True).limit(1).execute()
             
-            # Get today's activity
-            from datetime import datetime, timedelta
+            from datetime import datetime
             today = datetime.now().date()
             activity = supabase.table("activity_logs").select("*").eq(
                 "employee_id", current_user["id"]
@@ -493,6 +442,81 @@ async def get_dashboard_metrics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch metrics: {str(e)}"
+        )
+
+# Add this to your main.py file after your other admin routes
+
+@app.get("/admin/activity-logs")
+async def get_activity_logs(
+    limit: int = 50,
+    offset: int = 0,
+    activity_type: str = None,
+    current_user: dict = Depends(require_admin),
+    supabase: Client = Depends(get_supabase)
+):
+    """
+    Get activity logs (Admin only)
+    """
+    try:
+        query = supabase.table("activity_logs").select("""
+            *,
+            profiles:employee_id (
+                full_name,
+                email,
+                employee_id
+            )
+        """)
+        
+        if activity_type:
+            query = query.eq("activity_type", activity_type)
+        
+        result = query.order("timestamp", desc=True).limit(limit).offset(offset).execute()
+        
+        # Format the logs for frontend
+        formatted_logs = []
+        for log in result.data:
+            formatted_log = {
+                "id": log.get("id"),
+                "activity_type": log.get("activity_type"),
+                "timestamp": log.get("timestamp"),
+                "status": log.get("status", "active"),
+                "details": log.get("details"),
+                "employee_name": log.get("profiles", {}).get("full_name") if log.get("profiles") else "Unknown",
+                "employee_email": log.get("profiles", {}).get("email") if log.get("profiles") else None,
+                "employee_id": log.get("profiles", {}).get("employee_id") if log.get("profiles") else None,
+            }
+            formatted_logs.append(formatted_log)
+        
+        return {
+            "logs": formatted_logs,
+            "total": len(result.data),
+            "limit": limit,
+            "offset": offset
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch activity logs: {str(e)}"
+        )
+# =====================================================
+# Departments Route
+# =====================================================
+
+@app.get("/departments")
+async def get_departments(
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase)
+):
+    """
+    Get all departments
+    """
+    try:
+        result = supabase.table("departments").select("*").execute()
+        return {"departments": result.data}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch departments: {str(e)}"
         )
 
 # =====================================================
